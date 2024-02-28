@@ -1,0 +1,13 @@
+{
+	"manifest_version": 3,
+	"name": "Geotab",
+	"version": "0.1",
+	"description": "Automatically opens tabs based on your location",
+	"icons": {
+		"128": "pin.png"
+	},
+	"action": {
+		"defualt_icon": "pin.png",
+		"default_popup": "popup.html"
+	}
+}
