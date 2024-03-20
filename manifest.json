@@ -9,5 +9,8 @@
 	"action": {
 		"defualt_icon": "pin.png",
 		"default_popup": "popup.html"
-	}
+	},
+	"permissions": [
+		"geolocation"
+	]
 }
