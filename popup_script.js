@@ -95,4 +95,52 @@ viewSavedTabsButton.addEventListener("click", function() {
     });
 });
 
+function removeUrlFromLocation(locationKey, urlToRemove) {
+    chrome.storage.local.get({locations: {}}, function(result) {
+        const locations = result.locations;
+        if (locations[locationKey]) {
+            locations[locationKey] = locations[locationKey].filter(url => url !== urlToRemove);
+            chrome.storage.local.set({locations}, function() {
+                console.log(`URL removed from location ${locationKey}:`, urlToRemove);
+                viewSavedTabsButton.click();
+            });
+        }
+    });
+}
+
+const viewSavedTabsButton = document.getElementById("viewSavedTabsButton");
+const savedTabsContainer = document.getElementById("savedTabsContainer");
+
+viewSavedTabsButton.addEventListener("click", function() {
+    chrome.storage.local.get({locations: {}}, function(result) {
+        const locations = result.locations;
+        savedTabsContainer.innerHTML = '';
+        Object.keys(locations).forEach(locationKey => {
+            const savedUrls = locations[locationKey];
+            const locationElement = document.createElement('div');
+            locationElement.textContent = `Location: ${locationKey}`;
+            const urlsList = document.createElement('ul');
+            savedUrls.forEach(url => {
+                const urlItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = "_blank";
+                link.textContent = url;
+                urlItem.appendChild(link);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', function() {
+                    removeUrlFromLocation(locationKey, url);
+                });
+                urlItem.appendChild(deleteButton);
+                urlsList.appendChild(urlItem);
+            });
+            locationElement.appendChild(urlsList);
+            savedTabsContainer.appendChild(locationElement);
+        });
+    });
+});
+
+
+
 
