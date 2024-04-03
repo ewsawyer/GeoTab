@@ -136,6 +136,7 @@ viewSavedTabsButton.addEventListener("click", function() {
 });
 
 function isValidUrl(url) {
-    const urlPattern = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i;
+    const urlPattern = /^(?:https?|ftp|file|chrome):\/\/(?:\S+(?::\S*)?@)?(?:localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]-*)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]-*)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))|localhost|(?:[a-z\x{00a1}-\x{ffff}0-9]+(?:-*[a-z\x{00a1}-\x{ffff}0-9]+)*)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+(?:-*[a-z\x{00a1}-\x{ffff}0-9]+)*))*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu;
     return urlPattern.test(url);
 }
+
