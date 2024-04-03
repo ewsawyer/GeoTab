@@ -6,9 +6,29 @@ button.addEventListener("click", () => {
 const locationOutput = document.getElementById("location");
 
 document.getElementById('saveButton').addEventListener('click', function() {
-    const url = document.getElementById('urlInput').value;
+    const urlInput = document.getElementById('urlInput');
+    const url = urlInput.value.trim();
+
     if (!url) {
-        console.log('URL is required');
+        const errorMessage = document.createElement('p');
+        errorMessage.textContent = 'No URL entered.';
+        errorMessage.style.color = 'red';
+        const existingErrorMessage = document.querySelector('.error-message');
+        if (existingErrorMessage) {
+            existingErrorMessage.remove();
+        }
+        urlInput.parentNode.insertBefore(errorMessage, urlInput.nextSibling);
+        return;
+    }
+    if (!isValidUrl(url)) {
+        const errorMessage = document.createElement('p');
+        errorMessage.textContent = 'Invalid URL. Please enter a valid URL.';
+        errorMessage.style.color = 'red';
+        const existingErrorMessage = document.querySelector('.error-message');
+        if (existingErrorMessage) {
+            existingErrorMessage.remove();
+        }
+        urlInput.parentNode.insertBefore(errorMessage, urlInput.nextSibling);
         return;
     }
     if ("geolocation" in navigator) {
@@ -114,6 +134,7 @@ viewSavedTabsButton.addEventListener("click", function() {
     });
 });
 
-
-
-
+function isValidUrl(url) {
+    const urlPattern = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i;
+    return urlPattern.test(url);
+}
