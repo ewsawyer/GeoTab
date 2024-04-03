@@ -106,33 +106,44 @@ const viewSavedTabsButton = document.getElementById("viewSavedTabsButton");
 const savedTabsContainer = document.getElementById("savedTabsContainer");
 
 viewSavedTabsButton.addEventListener("click", function() {
-    chrome.storage.local.get({locations: {}}, function(result) {
-        const locations = result.locations;
-        savedTabsContainer.innerHTML = '';
-        Object.keys(locations).forEach(locationKey => {
-            const savedUrls = locations[locationKey];
-            const locationElement = document.createElement('div');
-            locationElement.textContent = `Location: ${locationKey}`;
-            const urlsList = document.createElement('ul');
-            savedUrls.forEach(url => {
-                const urlItem = document.createElement('li');
-                const link = document.createElement('a');
-                link.href = url;
-                link.target = "_blank";
-                link.textContent = url;
-                urlItem.appendChild(link);
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', function() {
-                    removeUrlFromLocation(locationKey, url);
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const { latitude, longitude } = position.coords;
+            const userLocationKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+            
+            chrome.storage.local.get({ locations: {} }, function(result) {
+                const locations = result.locations;
+                savedTabsContainer.innerHTML = '';
+                
+                Object.keys(locations).forEach(locationKey => {
+                    if (locationKey === userLocationKey) {
+                        const savedUrls = locations[locationKey];
+                        const locationElement = document.createElement('div');
+                        locationElement.textContent = `Location: ${locationKey}`;
+                        const urlsList = document.createElement('ul');
+                        
+                        savedUrls.forEach(url => {
+                            const urlItem = document.createElement('li');
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.target = "_blank";
+                            link.textContent = url;
+                            urlItem.appendChild(link);
+                            
+                            urlsList.appendChild(urlItem);
+                        });
+                        
+                        locationElement.appendChild(urlsList);
+                        savedTabsContainer.appendChild(locationElement);
+                    }
                 });
-                urlItem.appendChild(deleteButton);
-                urlsList.appendChild(urlItem);
             });
-            locationElement.appendChild(urlsList);
-            savedTabsContainer.appendChild(locationElement);
+        }, function(error) {
+            console.error(error);
         });
-    });
+    } else {
+        console.log("Geolocation is not supported by this browser.");
+    }
 });
 
 function isValidUrl(url) {
