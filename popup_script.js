@@ -68,33 +68,6 @@ function openLocationBasedUrls(locationKey) {
     });
 }
 
-const viewSavedTabsButton = document.getElementById("viewSavedTabsButton");
-const savedTabsContainer = document.getElementById("savedTabsContainer");
-
-viewSavedTabsButton.addEventListener("click", function() {
-    chrome.storage.local.get({locations: {}}, function(result) {
-        const locations = result.locations;
-        savedTabsContainer.innerHTML = '';
-        Object.keys(locations).forEach(locationKey => {
-            const savedUrls = locations[locationKey];
-            const locationElement = document.createElement('div');
-            locationElement.textContent = `Location: ${locationKey}`;
-            const urlsList = document.createElement('ul');
-            savedUrls.forEach(url => {
-                const urlItem = document.createElement('li');
-                const link = document.createElement('a');
-                link.href = url;
-                link.target = "_blank";
-                link.textContent = url;
-                urlItem.appendChild(link);
-                urlsList.appendChild(urlItem);
-            });
-            locationElement.appendChild(urlsList);
-            savedTabsContainer.appendChild(locationElement);
-        });
-    });
-});
-
 function removeUrlFromLocation(locationKey, urlToRemove) {
     chrome.storage.local.get({locations: {}}, function(result) {
         const locations = result.locations;
@@ -107,6 +80,9 @@ function removeUrlFromLocation(locationKey, urlToRemove) {
         }
     });
 }
+
+const viewSavedTabsButton = document.getElementById("viewSavedTabsButton");
+const savedTabsContainer = document.getElementById("savedTabsContainer");
 
 viewSavedTabsButton.addEventListener("click", function() {
     chrome.storage.local.get({locations: {}}, function(result) {
