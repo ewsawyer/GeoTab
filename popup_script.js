@@ -5,29 +5,30 @@ button.addEventListener("click", () => {
 
 const locationOutput = document.getElementById("location");
 
-document.getElementById('saveButton').addEventListener('click', function() {
+const saveButton = document.getElementById('saveButton');
+
+saveButton.addEventListener('click', function() {
     const urlInput = document.getElementById('urlInput');
     const url = urlInput.value.trim();
-
+    
+    const existingErrorMessage = document.querySelector('.error-message');
+    if (existingErrorMessage) {
+        existingErrorMessage.remove();
+    }
+    
     if (!url) {
         const errorMessage = document.createElement('p');
         errorMessage.textContent = 'No URL entered.';
+        errorMessage.classList.add('error-message');
         errorMessage.style.color = 'red';
-        const existingErrorMessage = document.querySelector('.error-message');
-        if (existingErrorMessage) {
-            existingErrorMessage.remove();
-        }
         urlInput.parentNode.insertBefore(errorMessage, urlInput.nextSibling);
         return;
     }
     if (!isValidUrl(url)) {
         const errorMessage = document.createElement('p');
         errorMessage.textContent = 'Invalid URL. Please enter a valid URL.';
+        errorMessage.classList.add('error-message');
         errorMessage.style.color = 'red';
-        const existingErrorMessage = document.querySelector('.error-message');
-        if (existingErrorMessage) {
-            existingErrorMessage.remove();
-        }
         urlInput.parentNode.insertBefore(errorMessage, urlInput.nextSibling);
         return;
     }
