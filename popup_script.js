@@ -83,11 +83,13 @@ function openLocationBasedUrls(latitude, longitude) {
         const userLocation = { latitude, longitude };
         const nearbyUrls = [];
 
-        locations.forEach(location => {
-            if (isInRadius(location.latitude, location.longitude, userLocation.latitude, userLocation.longitude)) {
-                nearbyUrls.push(...location.urls);
-            }
-        });
+        if (Array.isArray(locations)) {
+            locations.forEach(location => {
+                if (isInRadius(location.latitude, location.longitude, userLocation.latitude, userLocation.longitude)) {
+                    nearbyUrls.push(...location.urls);
+                }
+            });
+        }
 
         if (nearbyUrls.length > 0) {
             nearbyUrls.forEach(url => {
@@ -98,6 +100,74 @@ function openLocationBasedUrls(latitude, longitude) {
         }
     });
 }
+
+function removeUrlFromLocation(latitude, longitude, urlToRemove) {
+    chrome.storage.local.get({locations: []}, function(result) {
+        let locations = result.locations;
+        let existingLocation = locations.find(loc => isInRadius(loc.latitude, loc.longitude, latitude, longitude));
+        
+        if (existingLocation) {
+            existingLocation.urls = existingLocation.urls.filter(url => url !== urlToRemove);
+
+            chrome.storage.local.set({locations}, function() {
+                console.log(`URL removed from location ${existingLocation.latitude.toFixed(2)}, ${existingLocation.longitude.toFixed(2)}:`, urlToRemove);
+                viewSavedTabsButton.click();
+            });
+        }
+    });
+}
+
+const viewSavedTabsButton = document.getElementById("viewSavedTabsButton");
+const savedTabsContainer = document.getElementById("savedTabsContainer");
+
+viewSavedTabsButton.addEventListener("click", function() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const { latitude, longitude } = position.coords;
+            const userLocationKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+            
+            chrome.storage.local.get({ locations: [] }, function(result) {
+                const locations = result.locations;
+                savedTabsContainer.innerHTML = '';
+                
+                if (Array.isArray(locations)) {
+                    locations.forEach(location => {
+                        if (isInRadius(location.latitude, location.longitude, latitude, longitude)) {
+                            const locationElement = document.createElement('div');
+                            locationElement.textContent = `Location: ${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}`;
+                            const urlsList = document.createElement('ul');
+                            
+                            location.urls.forEach(url => {
+                                const urlItem = document.createElement('li');
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.target = "_blank";
+                                link.textContent = url;
+                                urlItem.appendChild(link);
+                                
+                                const deleteButton = document.createElement('button');
+                                deleteButton.textContent = 'Delete';
+                                deleteButton.addEventListener('click', function() {
+                                    removeUrlFromLocation(location.latitude, location.longitude, url);
+                                });
+                                urlItem.appendChild(deleteButton);
+                                
+                                urlsList.appendChild(urlItem);
+                            });
+                            
+                            locationElement.appendChild(urlsList);
+                            savedTabsContainer.appendChild(locationElement);
+                        }
+                    });
+                }
+            });
+        }, function(error) {
+            console.error(error);
+        });
+    } else {
+        console.log("Geolocation is not supported by this browser.");
+    }
+});
 
 function isInRadius(lat1, lon1, lat2, lon2) {
     const R = 6371; // Earth's radius in km
