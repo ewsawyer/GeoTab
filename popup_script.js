@@ -108,9 +108,6 @@ function removeUrlFromLocation(locationKey, urlToRemove) {
     });
 }
 
-const viewSavedTabsButton = document.getElementById("viewSavedTabsButton");
-const savedTabsContainer = document.getElementById("savedTabsContainer");
-
 viewSavedTabsButton.addEventListener("click", function() {
     chrome.storage.local.get({locations: {}}, function(result) {
         const locations = result.locations;
