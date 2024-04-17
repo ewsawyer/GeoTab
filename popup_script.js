@@ -5,7 +5,7 @@ button.addEventListener("click", () => {
 
 const locationOutput = document.getElementById("location");
 
-const getLocationBtn = document.getElementById("get-location");
+const getLocationBtn = document.getElementById("btn-get-location");
 
 const saveButton = document.getElementById('saveButton');
 
