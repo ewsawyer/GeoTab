@@ -4,17 +4,59 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width ,initial-scale=1.0, maximum-scale=1.0">
 	<link rel="stylesheet" href="popup_styles.css">
-
 	<title>Geotab</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Short+Stack&display=swap');
+		body {
+		  font-family: 'Short Stack', cursive;
+		}
+		#btn-get-location{
+			margin-left: 63px;
+		}
+		#btn-add-tabs{
+			margin-left: 5px;
+		}
+	</style>
 </head>
 
-<body>
-	<h1>Welcome to Geotab</h1>
-	<button id="btn-close">Close</button>
-
+<body class="doodle">
+	<!-- <h1 style="margin:0 auto;">Welcome to Geotab</h1> -->
+	<img src="img/geotab title.png" alt="TItle" width = "400" style="border: none;"/>
+	<div id="menu">
+		<button id="btn-get-location">Get Location</button>
+		<button id="btn-add-tabs">Add Tabs</button>
+	</div>
+	<div id="clearfloat"></div>
 	<p id="location">Location</p>
-	<button id="btn-get-location">Get Location</button>
+	<div class="border" style="width:400px;">
+		<ul>
+			<li>Location: Leavey Library</li>
+			<li><a href="http://www.google.com">Tab1</a></li>
+			<li><a href="http://www.google.com">Tab2</a></li>
+			<li><a href="http://www.google.com">Tab3</a></li>
+			<button>Edit</button>
+		</ul>
+	</div>
+	<div class="border" style="width:400px;">
+		<ul>
+			<li>Location: Doheny Library</li>
+			<li><a href="http://www.google.com">Tab1</a></li>
+			<li><a href="http://www.google.com">Tab2</a></li>
+			<li><a href="http://www.google.com">Tab3</a></li>
+			<li><a href="http://www.google.com">Tab4</a></li>
+			<button>Edit</button>
+		</ul>
+	</div>
+	<div class="border" style="width:400px;">
+		<ul>
+			<li>Location: Dorm</li>
+			<li><a href="http://www.google.com">Tab1</a></li>
+			<li><a href="http://www.google.com">Tab2</a></li>
+			<button>Edit</button>
+		</ul>
+	</div>
 
-	<script src="popup_script.js"></script>
+	<button id="btn-close">Close</button>
+	<script href="popup_script.js"></script>
 </body>
 </html>
