@@ -14,20 +14,27 @@ const addTabsBtn = document.getElementById('btn-add-tabs');
 getLocationBtn.addEventListener("click", () => {
     navigator.geolocation.getCurrentPosition(function(position) {
         const { latitude, longitude } = position.coords;
-        locationOutput.innerHTML = latitude.toFixed(4) + " " + longitude.toFixed(4);
-        const locationKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+        const coordinates = latitude.toFixed(3) + " " + longitude.toFixed(3)
+        locationOutput.innerHTML = coordinates;
+        document.getElementById('openTabsButton').innerHTML = "Open Tabs for " + coordinates;
+        const locationKey = `${latitude.toFixed(3)},${longitude.toFixed(3)}`;
+
         chrome.storage.local.get({names: {}}, function(result) {
             const names = result.names;
             if (!names[locationKey]) {
-                document.getElementById('naming-location').style.display = 'block';
+                const nameButton = document.getElementById('naming-location');
+                nameButton.style.display = 'block';
                 document.getElementById('nameLocation').addEventListener("click", () => {
+                    nameButton.style.display = 'none';
                     document.getElementById('save-name').style.display = 'block';
                     document.getElementById('saveName').addEventListener("click", () => {
                         const nameInput = document.getElementById('nameInput');
                         const name = nameInput.value.trim();
                         console.log(name);
                         names[locationKey] = name;
-                        locationOutput.innerHTML = name;
+                        locationOutput.innerHTML = name + " (" + coordinates + ")";
+                        document.getElementById('openTabsButton').innerHTML = "Open Tabs for " + name;
+
                         chrome.storage.local.set({names}, function() {
                             document.getElementById('nameInput').value = '';
                             document.getElementById('naming-location').style.display = 'none';
@@ -37,20 +44,16 @@ getLocationBtn.addEventListener("click", () => {
                 });
             }
             else {
-                locationOutput.innerHTML = names[locationKey];
+                locationOutput.innerHTML = names[locationKey] + " (" + latitude.toFixed(3) + " " + longitude.toFixed(3) + ")";
+                document.getElementById('openTabsButton').innerHTML = "Open Tabs for " + names[locationKey];
             }
-            // locations[locationKey].push(url);
-    
-            // chrome.storage.local.set({locations}, function() {
-            //     console.log(`URL saved for location ${locationKey}:`, url);
-            //     document.getElementById('urlInput').value = ''; 
-            // });
         });
+
         console.log(locationKey);
     }, function(error) {
         console.error(error);
     });
-
+    document.getElementById('open').style.display = 'block';
 	
 });
 
@@ -89,7 +92,7 @@ saveButton.addEventListener('click', function() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(function(position) {
             const { latitude, longitude } = position.coords;
-            const locationKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`; // Simplify coords
+            const locationKey = `${latitude.toFixed(3)},${longitude.toFixed(3)}`; // Simplify coords
             saveUrlForLocation(locationKey, url);
         }, function(error) {
             console.error(error);
@@ -115,7 +118,7 @@ openTabsButton.addEventListener("click", function() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(function(position) {
             const { latitude, longitude } = position.coords;
-            const locationKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+            const locationKey = `${latitude.toFixed(3)},${longitude.toFixed(3)}`;
             openLocationBasedUrls(locationKey);
         }, function(error) {
             console.error(error);
@@ -128,14 +131,26 @@ openTabsButton.addEventListener("click", function() {
 function saveUrlForLocation(locationKey, url) {
     chrome.storage.local.get({locations: {}}, function(result) {
         const locations = result.locations;
-        if (!locations[locationKey]) {
-            locations[locationKey] = [];
-        }
-        locations[locationKey].push(url);
+        console.log(locations[locationKey]);
 
-        chrome.storage.local.set({locations}, function() {
-            console.log(`URL saved for location ${locationKey}:`, url);
-            document.getElementById('urlInput').value = ''; 
+        chrome.storage.local.get({names: {}}, function(result) {
+            const names = result.names;
+            if (!names[locationKey]) {
+                if (!locations[locationKey]) {
+                    locations[locationKey] = [];
+                }
+                locations[locationKey].push(url);
+            }
+            else {
+                if (!locations[names[locationKey]]) {
+                    locations[names[locationKey]] = [];
+                }
+                locations[names[locationKey]].push(url);
+            }
+            chrome.storage.local.set({locations}, function() {
+                console.log(`URL saved for location ${names[locationKey] ? names[locationKey] : locationKey}:`, url);
+                document.getElementById('urlInput').value = ''; 
+            });
         });
     });
 }
@@ -173,12 +188,21 @@ viewSavedTabsButton.addEventListener("click", function() {
     chrome.storage.local.get({locations: {}}, function(result) {
         const locations = result.locations;
         savedTabsContainer.innerHTML = '';
+        let locationCount = 0;
         Object.keys(locations).forEach(locationKey => {
+            locationCount++;
             const savedUrls = locations[locationKey];
             const locationElement = document.createElement('div');
-            locationElement.textContent = `Location: ${locationKey}`;
+            locationElement.className = "border";
+            locationElement.style.width = "400px";
             const urlsList = document.createElement('ul');
+            const locationName = document.createElement('h3');
+            urlsList.appendChild(locationName);
+           
+            locationName.textContent = `Location: ${locationKey}`;
+            let tabCount = 0;
             savedUrls.forEach(url => {
+                tabCount++;
                 const urlItem = document.createElement('li');
                 const link = document.createElement('a');
                 link.href = url;
@@ -193,9 +217,23 @@ viewSavedTabsButton.addEventListener("click", function() {
                 urlItem.appendChild(deleteButton);
                 urlsList.appendChild(urlItem);
             });
+            if (tabCount === 0) {
+                const noTabs = document.createElement('h4');
+                noTabs.textContent = 'No tabs currently saved...'
+                urlsList.appendChild(noTabs);
+            }
             locationElement.appendChild(urlsList);
             savedTabsContainer.appendChild(locationElement);
         });
+        if (locationCount === 0) {
+            const locationElement = document.createElement('div');
+            locationElement.className = "border";
+            locationElement.style.width = "400px";
+            const locationName = document.createElement('h3');
+            locationName.textContent = "Start saving tabs to see them here";
+            locationElement.appendChild(locationName);
+            savedTabsContainer.appendChild(locationElement);
+        }
     });
 });
 
