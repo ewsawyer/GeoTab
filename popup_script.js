@@ -1,7 +1,7 @@
 const button = document.getElementById("btn-close");
 button.addEventListener("click", () => {
-    window.close();
-});
+	window.close();
+})
 
 const locationOutput = document.getElementById("location");
 
@@ -35,7 +35,8 @@ saveButton.addEventListener('click', function() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(function(position) {
             const { latitude, longitude } = position.coords;
-            saveUrlForLocation(latitude, longitude, url);
+            const locationKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`; // Simplify coords
+            saveUrlForLocation(locationKey, url);
         }, function(error) {
             console.error(error);
         });
@@ -50,7 +51,8 @@ openTabsButton.addEventListener("click", function() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(function(position) {
             const { latitude, longitude } = position.coords;
-            openLocationBasedUrls(latitude, longitude);
+            const locationKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+            openLocationBasedUrls(locationKey);
         }, function(error) {
             console.error(error);
         });
@@ -59,64 +61,82 @@ openTabsButton.addEventListener("click", function() {
     }
 });
 
-function saveUrlForLocation(latitude, longitude, url) {
-    chrome.storage.local.get({locations: []}, function(result) {
-        let locations = result.locations;
-        let existingLocation = locations.find(loc => isInRadius(loc.latitude, loc.longitude, latitude, longitude));
-        
-        if (!existingLocation) {
-            existingLocation = { latitude, longitude, urls: [] };
-            locations.push(existingLocation);
+function saveUrlForLocation(locationKey, url) {
+    chrome.storage.local.get({locations: {}}, function(result) {
+        const locations = result.locations;
+        if (!locations[locationKey]) {
+            locations[locationKey] = [];
         }
-        existingLocation.urls.push(url);
+        locations[locationKey].push(url);
 
         chrome.storage.local.set({locations}, function() {
-            console.log(`URL saved for location ${existingLocation.latitude.toFixed(2)}, ${existingLocation.longitude.toFixed(2)}:`, url);
+            console.log(`URL saved for location ${locationKey}:`, url);
             document.getElementById('urlInput').value = ''; 
         });
     });
 }
 
-function openLocationBasedUrls(latitude, longitude) {
-    chrome.storage.local.get({locations: []}, function(result) {
-        const locations = result.locations;
-        const userLocation = { latitude, longitude };
-        const nearbyUrls = [];
-
-        locations.forEach(location => {
-            if (isInRadius(location.latitude, location.longitude, userLocation.latitude, userLocation.longitude)) {
-                nearbyUrls.push(...location.urls);
-            }
-        });
-
-        if (nearbyUrls.length > 0) {
-            nearbyUrls.forEach(url => {
+function openLocationBasedUrls(locationKey) {
+    chrome.storage.local.get({locations: {}}, function(result) {
+        const urls = result.locations[locationKey];
+        if (urls) {
+            urls.forEach(url => {
                 chrome.tabs.create({url});
             });
         } else {
-            console.log("No URLs saved for nearby locations.");
+            console.log("No URLs saved for this location.");
         }
     });
 }
 
-function isInRadius(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth's radius in km
-    const radiusInMeters = 50 * 0.3048; // Convert 50 feet to meters
-    const dLat = toRadians(lat2 - lat1);
-    const dLon = toRadians(lon2 - lon1);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c * 1000; // Distance in meters
-    return distance <= radiusInMeters;
+function removeUrlFromLocation(locationKey, urlToRemove) {
+    chrome.storage.local.get({locations: {}}, function(result) {
+        const locations = result.locations;
+        if (locations[locationKey]) {
+            locations[locationKey] = locations[locationKey].filter(url => url !== urlToRemove);
+            chrome.storage.local.set({locations}, function() {
+                console.log(`URL removed from location ${locationKey}:`, urlToRemove);
+                viewSavedTabsButton.click();
+            });
+        }
+    });
 }
 
-function toRadians(degrees) {
-    return degrees * Math.PI / 180;
-}
+const viewSavedTabsButton = document.getElementById("viewSavedTabsButton");
+const savedTabsContainer = document.getElementById("savedTabsContainer");
+
+viewSavedTabsButton.addEventListener("click", function() {
+    chrome.storage.local.get({locations: {}}, function(result) {
+        const locations = result.locations;
+        savedTabsContainer.innerHTML = '';
+        Object.keys(locations).forEach(locationKey => {
+            const savedUrls = locations[locationKey];
+            const locationElement = document.createElement('div');
+            locationElement.textContent = `Location: ${locationKey}`;
+            const urlsList = document.createElement('ul');
+            savedUrls.forEach(url => {
+                const urlItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = "_blank";
+                link.textContent = url;
+                urlItem.appendChild(link);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', function() {
+                    removeUrlFromLocation(locationKey, url);
+                });
+                urlItem.appendChild(deleteButton);
+                urlsList.appendChild(urlItem);
+            });
+            locationElement.appendChild(urlsList);
+            savedTabsContainer.appendChild(locationElement);
+        });
+    });
+});
 
 function isValidUrl(url) {
     const urlPattern = /^(https?|ftp|file|chrome):\/\/\S+$/i;
     return urlPattern.test(url);
 }
+
