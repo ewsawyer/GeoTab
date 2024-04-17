@@ -9,6 +9,8 @@ const getLocationBtn = document.getElementById("btn-get-location");
 console.log(getLocationBtn);
 
 const saveButton = document.getElementById('saveButton');
+const doneSaving = document.getElementById('doneSaving');
+const addTabsBtn = document.getElementById('btn-add-tabs');
 
 getLocationBtn.addEventListener("click", () => {
 	navigator.geolocation.getCurrentPosition(
@@ -22,7 +24,14 @@ getLocationBtn.addEventListener("click", () => {
 	)
 
 	
-})
+});
+
+addTabsBtn.addEventListener("click", () => {
+	const searchField = document.getElementById('search-field');
+    searchField.style.display = 'block';
+    console.log(searchField);
+});
+
 
 saveButton.addEventListener('click', function() {
     const urlInput = document.getElementById('urlInput');
@@ -59,6 +68,15 @@ saveButton.addEventListener('click', function() {
         });
     } else {
         console.log("Geolocation is not supported by this browser.");
+    }
+});
+
+doneSaving.addEventListener("click", () => {
+	const searchField = document.getElementById('search-field');
+    searchField.style.display = 'none';
+    const existingErrorMessage = document.querySelector('.error-message');
+    if (existingErrorMessage) {
+        existingErrorMessage.remove();
     }
 });
 
