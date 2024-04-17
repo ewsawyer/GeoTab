@@ -13,15 +13,12 @@ const doneSaving = document.getElementById('doneSaving');
 const addTabsBtn = document.getElementById('btn-add-tabs');
 
 getLocationBtn.addEventListener("click", () => {
-	navigator.geolocation.getCurrentPosition(
-		loc => {
-			locationOutput.innerHTML = loc.coords.latitude + " " + loc.coords.longitude;
-			lat = loc.coords.latitude;
-			long = loc.coords.longitude;
-		},
-		error => locationOutput.textContent = error.message,
-		{enableHighAccuracy: true}
-	)
+    navigator.geolocation.getCurrentPosition(function(position) {
+        const { latitude, longitude } = position.coords;
+        locationOutput.innerHTML = latitude.toFixed(4) + " " + longitude.toFixed(4);
+    }, function(error) {
+        console.error(error);
+    });
 
 	
 });
@@ -61,7 +58,7 @@ saveButton.addEventListener('click', function() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(function(position) {
             const { latitude, longitude } = position.coords;
-            const locationKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`; // Simplify coords
+            const locationKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`; // Simplify coords
             saveUrlForLocation(locationKey, url);
         }, function(error) {
             console.error(error);
@@ -86,7 +83,7 @@ openTabsButton.addEventListener("click", function() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(function(position) {
             const { latitude, longitude } = position.coords;
-            const locationKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+            const locationKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
             openLocationBasedUrls(locationKey);
         }, function(error) {
             console.error(error);
