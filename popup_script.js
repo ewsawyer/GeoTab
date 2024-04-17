@@ -6,11 +6,11 @@ button.addEventListener("click", () => {
 const locationOutput = document.getElementById("location");
 
 const getLocationBtn = document.getElementById("btn-get-location");
+console.log(getLocationBtn);
 
 const saveButton = document.getElementById('saveButton');
 
 getLocationBtn.addEventListener("click", () => {
-	
 	navigator.geolocation.getCurrentPosition(
 		loc => {
 			locationOutput.innerHTML = loc.coords.latitude + " " + loc.coords.longitude;
