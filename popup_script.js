@@ -6,7 +6,6 @@ button.addEventListener("click", () => {
 const locationOutput = document.getElementById("location");
 
 const getLocationBtn = document.getElementById("btn-get-location");
-console.log(getLocationBtn);
 
 const saveButton = document.getElementById('saveButton');
 const doneSaving = document.getElementById('doneSaving');
@@ -16,6 +15,38 @@ getLocationBtn.addEventListener("click", () => {
     navigator.geolocation.getCurrentPosition(function(position) {
         const { latitude, longitude } = position.coords;
         locationOutput.innerHTML = latitude.toFixed(4) + " " + longitude.toFixed(4);
+        const locationKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+        chrome.storage.local.get({names: {}}, function(result) {
+            const names = result.names;
+            if (!names[locationKey]) {
+                document.getElementById('naming-location').style.display = 'block';
+                document.getElementById('nameLocation').addEventListener("click", () => {
+                    document.getElementById('save-name').style.display = 'block';
+                    document.getElementById('saveName').addEventListener("click", () => {
+                        const nameInput = document.getElementById('nameInput');
+                        const name = nameInput.value.trim();
+                        console.log(name);
+                        names[locationKey] = name;
+                        locationOutput.innerHTML = name;
+                        chrome.storage.local.set({names}, function() {
+                            document.getElementById('nameInput').value = '';
+                            document.getElementById('naming-location').style.display = 'none';
+                            document.getElementById('save-name').style.display = 'none';
+                        });
+                    });
+                });
+            }
+            else {
+                locationOutput.innerHTML = names[locationKey];
+            }
+            // locations[locationKey].push(url);
+    
+            // chrome.storage.local.set({locations}, function() {
+            //     console.log(`URL saved for location ${locationKey}:`, url);
+            //     document.getElementById('urlInput').value = ''; 
+            // });
+        });
+        console.log(locationKey);
     }, function(error) {
         console.error(error);
     });
@@ -75,6 +106,7 @@ doneSaving.addEventListener("click", () => {
     if (existingErrorMessage) {
         existingErrorMessage.remove();
     }
+    document.getElementById('urlInput').value = ''; 
 });
 
 const openTabsButton = document.getElementById("openTabsButton");
