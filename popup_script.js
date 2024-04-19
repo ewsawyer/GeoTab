@@ -156,39 +156,34 @@ function saveUrlForLocation(locationKey, url) {
 }
 
 function openLocationBasedUrls(locationKey) {
+    const tabIds = [];
     chrome.storage.local.get({locations: {}}, function(results) {
-        chrome.storage.local.get({names: {}}, function(result) {
+        chrome.storage.local.get({names: {}}, async function(result) {
             const names = result.names;
+            let title;
+            let urls;
             if (!names[locationKey]) {
-                const urls = result.locations[locationKey];
-                if (urls) {
-                    urls.forEach(url => {
-                        chrome.tabs.create({url});
-                    });
-                } else {
-                    console.log("No URLs saved for this location.");
-                }
+                urls = results.locations[locationKey];
+                title = locationKey;
+            } else {
+                urls = results.locations[names[locationKey]];
+                title = names[locationKey];
             }
-            else {
-                const urls = results.locations[names[locationKey]];
-                if (urls) {
-                    urls.forEach(url => {
-                        chrome.tabs.create({url});
-                    });
-                } else {
-                    console.log("No URLs saved for this location.");
+            if (urls) {
+                for (const url of urls) {
+                    const tab = await chrome.tabs.create({ url });
+                    tabIds.push(tab.id);
                 }
+            } else {
+                console.log("No URLs saved for this location.");
+            }
+            if (tabIds.length) {
+                const group = await chrome.tabs.group({ tabIds });
+                await chrome.tabGroups.update(group, { title: title });
             }
         });
-        const urls = result.locations[locationKey];
-        if (urls) {
-            urls.forEach(url => {
-                chrome.tabs.create({url});
-            });
-        } else {
-            console.log("No URLs saved for this location.");
-        }
     });
+    console.log(tabIds);
 }
 
 function removeUrlFromLocation(locationKey, urlToRemove) {
