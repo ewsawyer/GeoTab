@@ -156,7 +156,30 @@ function saveUrlForLocation(locationKey, url) {
 }
 
 function openLocationBasedUrls(locationKey) {
-    chrome.storage.local.get({locations: {}}, function(result) {
+    chrome.storage.local.get({locations: {}}, function(results) {
+        chrome.storage.local.get({names: {}}, function(result) {
+            const names = result.names;
+            if (!names[locationKey]) {
+                const urls = result.locations[locationKey];
+                if (urls) {
+                    urls.forEach(url => {
+                        chrome.tabs.create({url});
+                    });
+                } else {
+                    console.log("No URLs saved for this location.");
+                }
+            }
+            else {
+                const urls = results.locations[names[locationKey]];
+                if (urls) {
+                    urls.forEach(url => {
+                        chrome.tabs.create({url});
+                    });
+                } else {
+                    console.log("No URLs saved for this location.");
+                }
+            }
+        });
         const urls = result.locations[locationKey];
         if (urls) {
             urls.forEach(url => {
